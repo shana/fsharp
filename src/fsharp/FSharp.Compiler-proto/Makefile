@@ -207,7 +207,8 @@ ilpars.fs: ../../absil/ilpars.fsy
 
 $(ASSEMBLY): FSStrings.resources FSComp.resources $(sources)
 	@-mkdir -p $(outdir)
-	MONO_PATH=$(bindir) mono-sgen $(MONO_OPTIONS) --debug $(FSC) -o:$(outdir)$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
+	MONO_PATH=$(bindir) mono-sgen $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
+	@-cp $@ $(outdir)
 
 clean:
 	-rm *.resources
