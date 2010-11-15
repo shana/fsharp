@@ -68,7 +68,7 @@ sources = \
 	../fscmain.fs
 
 RESOURCES = \
-	-resource:FSCstrings.resources
+	--resource:FSCstrings.resources
 
 all: $(ASSEMBLY)
 
