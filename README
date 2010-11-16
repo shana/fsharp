@@ -1,0 +1,10 @@
+This is the F# compiler and core library for Mono, based on the F# Powerpack code drop
+under the OSS approved Apache 2.0 license.
+
+The build follows the cli\2.0 configuration on the original *.fsproj files included in
+the F# Powerpack code drop, in terms of flags and defines.
+
+To bootstrap the compiler, binaries built on VS2010 are used, as the official binaries
+fail to build due to a possible tail call bug on Mono.
+
+This build is based on F# Powerpack r53135

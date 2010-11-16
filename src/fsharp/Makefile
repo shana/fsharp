@@ -13,10 +13,14 @@ library: proto
 compiler: proto library
 	make -C FSharp.Build
 	make -C FSharp.Compiler
+	make -C Fsc
 
 clean:
 	make -C FSharp.Build-proto clean
 	make -C FSharp.Compiler-proto clean
 	make -C Fsc-proto clean
 	make -C FSharp.Core clean
+	make -C FSharp.Build clean
+	make -C FSharp.Compiler clean
+	make -C Fsc clean
 

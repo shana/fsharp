@@ -1,50 +1,17 @@
 NAME=FSharp.Core
 ASSEMBLY = $(NAME).dll
 
-libdir=`pkg-config --variable=libdir mono`/mono/4.0/
-proto=../../../lib/proto/
-outdir=../../../lib/debug/
+include ../Makefile.inc
 
 FSC=$(proto)fsc-proto.exe
 
-FLAGS= \
-	--doc:$(NAME).xml \
-	--versionfile:../../../source-build-version \
-	-g \
-	--mlcompatibility \
-	--noframework \
+FLAGS += \
 	--target:library \
-	--fullpaths \
-	--times \
 	--compiling-fslib
 
-DEFINES_GENERAL = \
-	--define:NO_STRONG_NAMES \
-	--define:TRACE \
-	--define:FX_ATLEAST_35
-	
-DEFINES_DEBUG = \
-	--define:CODE_ANALYSIS \
-	--define:DEBUG
-
-DEFINES_2_0 = \
-	--define:FX_FSLIB_STRUCTURAL_EQUALITY \
-	--define:FX_FSLIB_IOBSERVABLE \
-	--define:FX_FSLIB_TUPLE \
-	--define:FX_FSLIB_LAZY
-
-DEFINES = \
-	$(DEFINES_GENERAL) \
-	$(DEFINES_DEBUG) \
-	$(DEFINES_2_0) \
+DEFINES += \
 	--define:RUNTIME \
 	--define:USE_FX_40_LAZY_ON_FX_20
-
-REFERENCES= \
-	-r:$(libdir)mscorlib.dll \
-	-r:$(libdir)System.Core.dll \
-	-r:$(libdir)System.dll \
-	-r:$(libdir)System.Numerics.dll
 
 sources = \
 	prim-types-prelude.fsi \
@@ -97,26 +64,11 @@ sources = \
 	../../assemblyinfo/assemblyinfo.FSharp.Core.dll.fs
 
 RESOURCES = \
-	--resource:FSCore.resources
+	--resource:$(objdir)FSCore.resources
 
-all: $(ASSEMBLY)
-
-FSCore.resources: FSCore.resx
+$(objdir)FSCore.resources: FSCore.resx
 	resgen FSCore.resx $@
 
-$(ASSEMBLY): FSCore.resources $(sources)
-	@-mkdir -p $(outdir)
-	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
-	@-cp $@ $(outdir)
-	@-cp $(NAME).xml $(outdir)
-	@-cp $@.mdb $(outdir)
-	@-cp $(NAME).sigdata $(outdir)
-	@-cp $(NAME).optdata $(outdir)
+$(objdir)$(ASSEMBLY): setup $(objdir)FSCore.resources $(sources)
+	MONO_PATH=$(bindir) mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
 
-clean:
-	@-rm FSCore.resources
-	@-rm $(outdir)$(ASSEMBLY)
-	@-rm $(outdir)$(NAME).sigdata
-	@-rm $(outdir)$(NAME).optdata
-	@-rm $(outdir)$(ASSEMBLY).mdb
-	@-rm $(outdir)$(NAME).xml

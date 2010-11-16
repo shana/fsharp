@@ -1,46 +1,13 @@
 NAME=FSharp.Compiler-proto
 ASSEMBLY = $(NAME).dll
 
-bindir=../../../lib/original/4.0/r53135/
-tooldir=../../../lib/original/2.0/
-libdir=`pkg-config --variable=libdir mono`/mono/4.0/
-libdir35=`pkg-config --variable=libdir mono`/mono/3.5/
-outdir=../../../lib/proto/
+include ../Makefile.inc
 
 FSC=$(bindir)fsc.exe
-FSSRGEN=$(tooldir)fssrgen.exe
-FSLEX=$(tooldir)fslex.exe
-FSYACC=$(tooldir)fsyacc.exe
 
-FLAGS= \
-	--doc:$(NAME).xml \
-	--versionfile:../../../source-build-version \
-	-g \
-	--mlcompatibility \
-	--noframework \
-	--target:library \
-	--fullpaths \
-	--times
+FLAGS += --target:library
 
-DEFINES_GENERAL = \
-	--define:NO_STRONG_NAMES \
-	--define:TRACE \
-	--define:FX_ATLEAST_35
-	
-DEFINES_DEBUG = \
-	--define:CODE_ANALYSIS \
-	--define:DEBUG
-
-DEFINES_2_0 = \
-	--define:FX_FSLIB_STRUCTURAL_EQUALITY \
-	--define:FX_FSLIB_IOBSERVABLE \
-	--define:FX_FSLIB_TUPLE \
-	--define:FX_FSLIB_LAZY
-
-DEFINES = \
-	$(DEFINES_GENERAL) \
-	$(DEFINES_DEBUG) \
-	$(DEFINES_2_0) \
+DEFINES += \
 	--define:BUILDING_WITH_LKG \
 	--define:BUILDING_PROTO \
 	--define:COMPILER \
@@ -48,18 +15,11 @@ DEFINES = \
 	--define:INCLUDE_METADATA_WRITER \
 	--define:TRYING_TO_FIX_4577
 
-REFERENCES= \
-	-r:$(bindir)FSharp.Core.dll \
-	-r:$(libdir)Microsoft.Build.Engine.dll \
-	-r:$(libdir)Microsoft.Build.Framework.dll \
-	-r:$(libdir35)Microsoft.Build.Tasks.v3.5.dll \
-	-r:$(libdir35)Microsoft.Build.Utilities.v3.5.dll \
-	-r:$(libdir)mscorlib.dll \
-	-r:$(libdir)System.Core.dll \
-	-r:$(libdir)System.dll
+REFERENCES += \
+	-r:$(bindir)FSharp.Core.dll
 
 sources = \
-	FSComp.fs \
+	$(objdir)FSComp.fs \
 	../../assemblyinfo/assemblyinfo.FSharp.Compiler.dll.fs \
 	../../utils/sformat.fsi \
 	../../utils/sformat.fs \
@@ -100,8 +60,8 @@ sources = \
 	../../absil/ilmorph.fs \
 	../../absil/ilsupp.fsi \
 	../../absil/ilsupp.fs \
-	ilpars.fs \
-	illex.fs \
+	$(objdir)ilpars.fs \
+	$(objdir)illex.fs \
 	../../absil/ilbinary.fsi \
 	../../absil/ilbinary.fs \
 	../lib.fs \
@@ -128,10 +88,10 @@ sources = \
 	../layout.fsi \
 	../layout.fs \
 	../ast.fs \
-	pars.fs \
+	$(objdir)pars.fs \
 	../lexhelp.fsi \
 	../lexhelp.fs \
-	lex.fs \
+	$(objdir)lex.fs \
 	../sreflect.fsi \
 	../sreflect.fs \
 	../QueueList.fs \
@@ -183,43 +143,30 @@ sources = \
 	../vs/IncrementalBuild.fs
 
 RESOURCES= \
-	--resource:FSStrings.resources \
-	--resource:FSComp.resources
+	--resource:$(objdir)FSStrings.resources \
+	--resource:$(objdir)FSComp.resources
 
-all: $(ASSEMBLY)
+$(objdir)FSComp.fs: ../FSComp.txt
+	mono --debug $(FSSRGEN) ../FSComp.txt $@ $(objdir)FSComp.resx
 
-FSComp.fs: ../FSComp.txt
-	mono --debug $(FSSRGEN) ../FSComp.txt $@ FSComp.resx
+$(objdir)FSComp.resources: $(objdir)FSComp.fs
+	resgen $(objdir)FSComp.resx $@
 
-FSComp.resources: FSComp.fs
-	resgen FSComp.resx $@
-
-FSStrings.resources: ../FSStrings.resx
+$(objdir)FSStrings.resources: ../FSStrings.resx
 	resgen ../FSStrings.resx $@
 
-lex.fs: ../lex.fsl
+$(objdir)lex.fs: ../lex.fsl
 	mono --debug $(FSLEX) ../lex.fsl -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
 
-illex.fs: ../../absil/illex.fsl
+$(objdir)illex.fs: ../../absil/illex.fsl
 	mono --debug $(FSLEX) ../../absil/illex.fsl -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
 
-pars.fs: ../pars.fsy
+$(objdir)pars.fs: ../pars.fsy
 	mono --debug $(FSYACC) ../pars.fsy -o $@ --internal --open Microsoft.FSharp.Compiler --module Microsoft.FSharp.Compiler.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
-ilpars.fs: ../../absil/ilpars.fsy
+$(objdir)ilpars.fs: ../../absil/ilpars.fsy
 	mono --debug $(FSYACC) ../../absil/ilpars.fsy -o $@ --internal --module Microsoft.FSharp.Compiler.AbstractIL.Internal.AsciiParser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
-$(ASSEMBLY): FSStrings.resources FSComp.resources $(sources)
-	@-mkdir -p $(outdir)
+$(objdir)$(ASSEMBLY): setup $(objdir)FSStrings.resources $(objdir)FSComp.resources $(sources)
 	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
-	@-cp $@ $(outdir)
-	@-cp $(NAME).xml $(outdir)
-	@-cp $@.mdb $(outdir)
 
-clean:
-	@-rm *.resources
-	@-rm *.resx
-	@-rm *.fs*
-	@-rm $(outdir)$(ASSEMBLY)
-	@-rm $(outdir)$(ASSEMBLY).mdb
-	@-rm $(outdir)$(NAME).xml
