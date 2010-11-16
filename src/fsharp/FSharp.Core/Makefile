@@ -1,57 +1,50 @@
 NAME=FSharp.Core
 ASSEMBLY = $(NAME).dll
 
-bindir=../../../lib/original/4.0/
-tooldir=../../../lib/original/2.0/
 libdir=`pkg-config --variable=libdir mono`/mono/4.0/
-libdir35=`pkg-config --variable=libdir mono`/mono/3.5/
 proto=../../../lib/proto/
 outdir=../../../lib/debug/
 
 FSC=$(proto)fsc-proto.exe
 
 FLAGS= \
-	--doc:$(outdir)$(NAME).xml \
+	--doc:$(NAME).xml \
 	--versionfile:../../../source-build-version \
-	--target:library \
 	-g \
-	--debug:full \
+	--mlcompatibility \
 	--noframework \
-	--baseaddress:0x05000000 \
-	--optimize- \
-	--nowarn:9,35,40,44,51,57,58,60,62,65,76,77,56,1204,69,65,54,61,75 \
-	--warn:3 \
-	--warnaserror:76 \
-	--vserrors \
-	--LCID:1033 \
-	--utf8output \
+	--target:library \
 	--fullpaths \
-	--flaterrors \
-	--warnon:1182 \
-	--compiling-fslib \
-	--optimize \
-	--maxerrors:20 \
-	--extraoptimizationloops:1 \
 	--times \
-	--no-jit-optimize \
-	--jit-tracking \
-	--nooptimizationdata
+	--compiling-fslib
 
-DEFINES= \
-	--define:CODE_ANALYSIS \
+DEFINES_GENERAL = \
 	--define:NO_STRONG_NAMES \
-	--define:RUNTIME \
-	--define:DEBUG \
 	--define:TRACE \
-	--define:FX_ATLEAST_40 \
 	--define:FX_ATLEAST_35
+	
+DEFINES_DEBUG = \
+	--define:CODE_ANALYSIS \
+	--define:DEBUG
+
+DEFINES_2_0 = \
+	--define:FX_FSLIB_STRUCTURAL_EQUALITY \
+	--define:FX_FSLIB_IOBSERVABLE \
+	--define:FX_FSLIB_TUPLE \
+	--define:FX_FSLIB_LAZY
+
+DEFINES = \
+	$(DEFINES_GENERAL) \
+	$(DEFINES_DEBUG) \
+	$(DEFINES_2_0) \
+	--define:RUNTIME \
+	--define:USE_FX_40_LAZY_ON_FX_20
 
 REFERENCES= \
 	-r:$(libdir)mscorlib.dll \
 	-r:$(libdir)System.Core.dll \
 	-r:$(libdir)System.dll \
-	-r:$(libdir)System.Numerics.dll \
-	-r:$(proto)FSharp.Compiler-proto.dll
+	-r:$(libdir)System.Numerics.dll
 
 sources = \
 	prim-types-prelude.fsi \
@@ -113,9 +106,17 @@ FSCore.resources: FSCore.resx
 
 $(ASSEMBLY): FSCore.resources $(sources)
 	@-mkdir -p $(outdir)
-	MONO_PATH=$(bindir) mono-sgen $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
+	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
 	@-cp $@ $(outdir)
+	@-cp $(NAME).xml $(outdir)
+	@-cp $@.mdb $(outdir)
+	@-cp $(NAME).sigdata $(outdir)
+	@-cp $(NAME).optdata $(outdir)
 
 clean:
-	-rm FSCore.resources
-	-rm $(outdir)$(ASSEMBLY)
+	@-rm FSCore.resources
+	@-rm $(outdir)$(ASSEMBLY)
+	@-rm $(outdir)$(NAME).sigdata
+	@-rm $(outdir)$(NAME).optdata
+	@-rm $(outdir)$(ASSEMBLY).mdb
+	@-rm $(outdir)$(NAME).xml

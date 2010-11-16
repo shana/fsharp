@@ -1,53 +1,51 @@
 NAME=fsc-proto
 ASSEMBLY = $(NAME).exe
 
-bindir=../../../lib/original/4.0/
+bindir=../../../lib/original/4.0/r53135/
 tooldir=../../../lib/original/2.0/
 libdir=`pkg-config --variable=libdir mono`/mono/4.0/
 libdir35=`pkg-config --variable=libdir mono`/mono/3.5/
 outdir=../../../lib/proto/
 
-FSSRGEN=$(tooldir)fssrgen.exe
 FSC=$(bindir)fsc.exe
+FSSRGEN=$(tooldir)fssrgen.exe
 
 FLAGS= \
-	--doc:$(outdir)$(NAME).xml \
+	--doc:$(NAME).xml \
 	--versionfile:../../../source-build-version \
 	-g \
+	--mlcompatibility \
 	--noframework \
-	--optimize- \
 	--target:exe \
-	--nowarn:62,69,65,54,61,75 \
-	--warn:3 \
-	--warnaserror:76 \
-	--vserrors \
-	--LCID:1033 \
-	--utf8output \
 	--fullpaths \
-	--flaterrors \
-	--stackReserveSize:4096000 \
-	--times \
-	--no-jit-optimize \
-	--jit-tracking
+	--times
 
-DEFINES= \
-	--define:DEBUG \
+DEFINES_GENERAL = \
 	--define:NO_STRONG_NAMES \
-	--define:TRYING_TO_FIX_4577 \
-	--define:BUILDING_PROTO \
-	--define:BUILDING_WITH_LKG \
-	--define:COMPILER \
-	--define:INCLUDE_METADATA_READER \
-	--define:INCLUDE_METADATA_WRITER \
+	--define:TRACE \
+	--define:FX_ATLEAST_35
+	
+DEFINES_DEBUG = \
+	--define:CODE_ANALYSIS \
+	--define:DEBUG
+
+DEFINES_2_0 = \
 	--define:FX_FSLIB_STRUCTURAL_EQUALITY \
 	--define:FX_FSLIB_IOBSERVABLE \
-	--define:FX_FSLIB_LAZY \
 	--define:FX_FSLIB_TUPLE \
-	--define:FX_ATLEAST_40 \
-	--define:FX_ATLEAST_35
+	--define:FX_FSLIB_LAZY
+
+DEFINES = \
+	$(DEFINES_GENERAL) \
+	$(DEFINES_DEBUG) \
+	$(DEFINES_2_0) \
+	--define:BUILDING_PROTO \
+	--define:BUILDING_WITH_LKG \
+	--define:COMPILER
 
 REFERENCES= \
 	-r:$(bindir)FSharp.Core.dll \
+	-r:$(outdir)FSharp.Compiler-proto.dll \
 	-r:$(libdir)Microsoft.Build.Engine.dll \
 	-r:$(libdir)Microsoft.Build.Framework.dll \
 	-r:$(libdir35)Microsoft.Build.Tasks.v3.5.dll \
@@ -56,8 +54,7 @@ REFERENCES= \
 	-r:$(libdir)System.Core.dll \
 	-r:$(libdir)System.dll \
 	-r:$(libdir)System.Runtime.Remoting.dll \
-	-r:$(libdir)System.Windows.Forms.dll \
-	-r:$(outdir)FSharp.Compiler-proto.dll
+	-r:$(libdir)System.Windows.Forms.dll
 
 sources = \
 	FSCstrings.fs \
@@ -73,17 +70,22 @@ RESOURCES = \
 all: $(ASSEMBLY)
 
 FSCstrings.fs: ../FSCstrings.txt
-	MONO_PATH=$(bindir) mono --debug $(FSSRGEN) ../FSCstrings.txt $@ FSCstrings.resx
+	mono --debug $(FSSRGEN) ../FSCstrings.txt $@ FSCstrings.resx
 
 FSCstrings.resources: FSCstrings.fs
 	resgen FSCstrings.resx $@
 
 $(ASSEMBLY): FSCstrings.resources $(sources)
 	@-mkdir -p $(outdir)
-	MONO_PATH=$(bindir) mono-sgen $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
+	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
 	@-cp $@ $(outdir)
+	@-cp $(NAME).xml $(outdir)
+	@-cp $@.mdb $(outdir)
 
 clean:
-	rm *.resx
-	rm *.resources
-	rm FSCstrings.*
+	@-rm *.resx
+	@-rm *.resources
+	@-rm FSCstrings.*
+	@-rm $(outdir)$(ASSEMBLY)
+	@-rm $(outdir)$(ASSEMBLY).mdb
+	@-rm $(outdir)$(NAME).xml

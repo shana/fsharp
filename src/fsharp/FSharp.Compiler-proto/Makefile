@@ -1,48 +1,52 @@
 NAME=FSharp.Compiler-proto
 ASSEMBLY = $(NAME).dll
 
-
-bindir=../../../lib/original/4.0/
+bindir=../../../lib/original/4.0/r53135/
 tooldir=../../../lib/original/2.0/
 libdir=`pkg-config --variable=libdir mono`/mono/4.0/
 libdir35=`pkg-config --variable=libdir mono`/mono/3.5/
 outdir=../../../lib/proto/
 
-FSSRGEN=$(tooldir)fssrgen.exe
 FSC=$(bindir)fsc.exe
+FSSRGEN=$(tooldir)fssrgen.exe
 FSLEX=$(tooldir)fslex.exe
 FSYACC=$(tooldir)fsyacc.exe
 
 FLAGS= \
-	--doc:$(outdir)$(NAME).xml \
+	--doc:$(NAME).xml \
 	--versionfile:../../../source-build-version \
 	-g \
+	--mlcompatibility \
 	--noframework \
 	--target:library \
-	--nowarn:35,44,62,9,60,86,47,1203,69,65,54,61,75 \
-	--warn:3 \
-	--warnaserror:76 \
 	--fullpaths \
-	--flaterrors \
-	--warnon:1182 \
-	--times \
-	--simpleresolution
+	--times
 
-DEFINES= \
-	--define:DEBUG \
+DEFINES_GENERAL = \
 	--define:NO_STRONG_NAMES \
-	--define:TRYING_TO_FIX_4577 \
-	--define:BUILDING_PROTO \
+	--define:TRACE \
+	--define:FX_ATLEAST_35
+	
+DEFINES_DEBUG = \
+	--define:CODE_ANALYSIS \
+	--define:DEBUG
+
+DEFINES_2_0 = \
+	--define:FX_FSLIB_STRUCTURAL_EQUALITY \
+	--define:FX_FSLIB_IOBSERVABLE \
+	--define:FX_FSLIB_TUPLE \
+	--define:FX_FSLIB_LAZY
+
+DEFINES = \
+	$(DEFINES_GENERAL) \
+	$(DEFINES_DEBUG) \
+	$(DEFINES_2_0) \
 	--define:BUILDING_WITH_LKG \
+	--define:BUILDING_PROTO \
 	--define:COMPILER \
 	--define:INCLUDE_METADATA_READER \
 	--define:INCLUDE_METADATA_WRITER \
-	--define:FX_FSLIB_STRUCTURAL_EQUALITY \
-	--define:FX_FSLIB_IOBSERVABLE \
-	--define:FX_FSLIB_LAZY \
-	--define:FX_FSLIB_TUPLE \
-	--define:FX_ATLEAST_40 \
-	--define:FX_ATLEAST_35
+	--define:TRYING_TO_FIX_4577
 
 REFERENCES= \
 	-r:$(bindir)FSharp.Core.dll \
@@ -185,13 +189,13 @@ RESOURCES= \
 all: $(ASSEMBLY)
 
 FSComp.fs: ../FSComp.txt
-	MONO_PATH=$(bindir) mono --debug $(FSSRGEN) ../FSComp.txt $@ FSComp.resx
-
-FSStrings.resources: ../FSStrings.resx
-	resgen ../FSStrings.resx $@
+	mono --debug $(FSSRGEN) ../FSComp.txt $@ FSComp.resx
 
 FSComp.resources: FSComp.fs
 	resgen FSComp.resx $@
+
+FSStrings.resources: ../FSStrings.resx
+	resgen ../FSStrings.resx $@
 
 lex.fs: ../lex.fsl
 	mono --debug $(FSLEX) ../lex.fsl -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
@@ -200,17 +204,22 @@ illex.fs: ../../absil/illex.fsl
 	mono --debug $(FSLEX) ../../absil/illex.fsl -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
 
 pars.fs: ../pars.fsy
-	MONO_PATH=$(tooldir) mono --debug $(FSYACC) ../pars.fsy -o $@ --internal --open Microsoft.FSharp.Compiler --module Microsoft.FSharp.Compiler.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
+	mono --debug $(FSYACC) ../pars.fsy -o $@ --internal --open Microsoft.FSharp.Compiler --module Microsoft.FSharp.Compiler.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
 ilpars.fs: ../../absil/ilpars.fsy
-	MONO_PATH=$(tooldir) mono --debug $(FSYACC) ../../absil/ilpars.fsy -o $@ --internal --module Microsoft.FSharp.Compiler.AbstractIL.Internal.AsciiParser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
+	mono --debug $(FSYACC) ../../absil/ilpars.fsy -o $@ --internal --module Microsoft.FSharp.Compiler.AbstractIL.Internal.AsciiParser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
 $(ASSEMBLY): FSStrings.resources FSComp.resources $(sources)
 	@-mkdir -p $(outdir)
-	MONO_PATH=$(bindir) mono-sgen $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
+	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
 	@-cp $@ $(outdir)
+	@-cp $(NAME).xml $(outdir)
+	@-cp $@.mdb $(outdir)
 
 clean:
-	-rm *.resources
-	-rm *.resx
-	-rm *.fs*
+	@-rm *.resources
+	@-rm *.resx
+	@-rm *.fs*
+	@-rm $(outdir)$(ASSEMBLY)
+	@-rm $(outdir)$(ASSEMBLY).mdb
+	@-rm $(outdir)$(NAME).xml

@@ -1,43 +1,45 @@
 NAME=FSharp.Build-proto
 ASSEMBLY = $(NAME).dll
 
-bindir=../../../lib/original/4.0/
+bindir=../../../lib/original/4.0/r53135/
 tooldir=../../../lib/original/2.0/
 libdir=`pkg-config --variable=libdir mono`/mono/4.0/
 libdir35=`pkg-config --variable=libdir mono`/mono/3.5/
 outdir=../../../lib/proto/
 
-FSSRGEN=$(tooldir)fssrgen.exe
 FSC=$(bindir)fsc.exe
+FSSRGEN=$(tooldir)fssrgen.exe
 
 FLAGS = \
-	--doc:$(outdir)$(NAME).xml \
+	--doc:$(NAME).xml \
 	--versionfile:../../../source-build-version \
 	-g \
-	--debug:full \
+	--mlcompatibility \
 	--noframework \
-	--optimize- \
 	--target:library \
-	--nowarn:69,65,54,61,75 \
-	--warn:3 \
-	--warnaserror:76 \
-	--LCID:1033 \
-	--utf8output \
 	--fullpaths \
-	--flaterrors \
-	--times \
-	--no-jit-optimize \
-	--jit-tracking
+	--times
+
+DEFINES_GENERAL = \
+	--define:NO_STRONG_NAMES \
+	--define:TRACE \
+	--define:FX_ATLEAST_35
+	
+DEFINES_DEBUG = \
+	--define:CODE_ANALYSIS \
+	--define:DEBUG
+
+DEFINES_2_0 = \
+	--define:FX_FSLIB_STRUCTURAL_EQUALITY \
+	--define:FX_FSLIB_IOBSERVABLE \
+	--define:FX_FSLIB_TUPLE \
+	--define:FX_FSLIB_LAZY
 
 DEFINES = \
-	--define:CODE_ANALYSIS \
-	--define:DEBUG \
-	--define:NO_STRONG_NAMES \
-	--define:BUILDING_WITH_LKG \
-	--define:DEBUG \
-	--define:TRACE \
-	--define:FX_ATLEAST_40 \
-	--define:FX_ATLEAST_35
+	$(DEFINES_GENERAL) \
+	$(DEFINES_DEBUG) \
+	$(DEFINES_2_0) \
+	--define:BUILDING_WITH_LKG
 
 REFERENCES = \
 	-r:$(bindir)FSharp.Core.dll \
@@ -63,15 +65,20 @@ RESOURCES = \
 all: $(ASSEMBLY)
 
 FSBuild.fs: ../FSharp.Build/FSBuild.txt
-	MONO_PATH=$(bindir) mono --debug $(FSSRGEN) ../FSharp.Build/FSBuild.txt $@ FSBuild.resx
+	mono --debug $(FSSRGEN) ../FSharp.Build/FSBuild.txt $@ FSBuild.resx
 
 FSBuild.resources: FSBuild.fs
 	resgen FSBuild.resx $@
 
 $(ASSEMBLY): FSBuild.resources $(sources)
 	@-mkdir -p $(outdir)
-	MONO_PATH=$(bindir) mono-sgen $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
+	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(RESOURCES) $(sources)
 	@-cp $@ $(outdir)
+	@-cp $(NAME).xml $(outdir)
+	@-cp $@.mdb $(outdir)
 
 clean:
 	@-rm FSBuild.*
+	@-rm $(outdir)$(ASSEMBLY)
+	@-rm $(outdir)$(ASSEMBLY).mdb
+	@-rm $(outdir)$(NAME).xml
