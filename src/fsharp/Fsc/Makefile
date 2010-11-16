@@ -11,13 +11,13 @@ FLAGS += --target:exe
 
 REFERENCES += \
 	-r:$(outdir)FSharp.Core.dll \
-	-r:$(outdir)FSharp.Compiler.dll
+	-r:$(outdir)FSharp.Compiler.dll \
 	-r:$(libdir)System.Runtime.Remoting.dll \
 	-r:$(libdir)System.Windows.Forms.dll 
 
 sources = \
 	$(objdir)FSCstrings.fs \
-	../../assemblyinfo/assemblyinfo.fsc-proto.exe.fs \
+	../../assemblyinfo/assemblyinfo.fsc.exe.fs \
 	../fsc.fs \
 	../fscmain.fs
 
@@ -30,6 +30,6 @@ $(objdir)FSCstrings.fs: ../FSCstrings.txt
 $(objdir)FSCstrings.resources: $(objdir)FSCstrings.fs
 	resgen $(objdir)FSCstrings.resx $@
 
-$(objdir)$(ASSEMBLY): setup $(objdir)FSCstrings.resources $(sources)
+$(objdir)$(ASSEMBLY): $(objdir)FSCstrings.resources $(sources)
 	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
 

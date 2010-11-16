@@ -167,6 +167,6 @@ $(objdir)pars.fs: ../pars.fsy
 $(objdir)ilpars.fs: ../../absil/ilpars.fsy
 	mono --debug $(FSYACC) ../../absil/ilpars.fsy -o $@ --internal --module Microsoft.FSharp.Compiler.AbstractIL.Internal.AsciiParser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
-$(objdir)$(ASSEMBLY): setup $(objdir)FSStrings.resources $(objdir)FSComp.resources $(sources)
+$(objdir)$(ASSEMBLY): $(objdir)FSStrings.resources $(objdir)FSComp.resources $(sources)
 	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
 

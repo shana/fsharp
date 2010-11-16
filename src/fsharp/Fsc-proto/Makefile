@@ -34,6 +34,6 @@ $(objdir)FSCstrings.fs: ../FSCstrings.txt
 $(objdir)FSCstrings.resources: $(objdir)FSCstrings.fs
 	resgen $(patsubst %.resources,%.resx,$@) $@
 
-$(objdir)$(ASSEMBLY): setup $(objdir)FSCstrings.resources $(sources)
+$(objdir)$(ASSEMBLY): $(objdir)FSCstrings.resources $(sources)
 	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(RESOURCES) $(sources)
 

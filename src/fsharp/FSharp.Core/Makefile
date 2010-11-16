@@ -3,6 +3,8 @@ ASSEMBLY = $(NAME).dll
 
 include ../Makefile.inc
 
+outdir=../../../lib/debug/
+
 FSC=$(proto)fsc-proto.exe
 
 FLAGS += \
@@ -69,6 +71,6 @@ RESOURCES = \
 $(objdir)FSCore.resources: FSCore.resx
 	resgen FSCore.resx $@
 
-$(objdir)$(ASSEMBLY): setup $(objdir)FSCore.resources $(sources)
+$(objdir)$(ASSEMBLY): $(objdir)FSCore.resources $(sources)
 	MONO_PATH=$(bindir) mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
 

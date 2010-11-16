@@ -25,11 +25,11 @@ RESOURCES = \
 	--resource:$(objdir)FSBuild.resources
 
 $(objdir)FSBuild.fs: FSBuild.txt
-	mono --debug $(FSSRGEN) FSBuild.txt $@ FSBuild.resx
+	mono --debug $(FSSRGEN) FSBuild.txt $@ $(objdir)FSBuild.resx
 
 $(objdir)FSBuild.resources: $(objdir)FSBuild.fs
 	resgen $(objdir)FSBuild.resx $@
 
-$(objdir)$(ASSEMBLY): setup $(objdir)FSBuild.resources $(sources)
+$(objdir)$(ASSEMBLY): $(objdir)FSBuild.resources $(sources)
 	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(RESOURCES) $(sources)
 
