@@ -1,4 +1,4 @@
-.PHONY: proto library
+.PHONY: proto library compiler
 
 all: proto library compiler
 
@@ -15,12 +15,15 @@ compiler: proto library
 	make -C FSharp.Compiler
 	make -C Fsc
 
+install:
+	$(MAKE) -C FSharp.Core $@
+
 clean:
-	make -C FSharp.Build-proto clean
-	make -C FSharp.Compiler-proto clean
-	make -C Fsc-proto clean
-	make -C FSharp.Core clean
-	make -C FSharp.Build clean
-	make -C FSharp.Compiler clean
-	make -C Fsc clean
+	$(MAKE) -C FSharp.Build-proto $@
+	$(MAKE) -C FSharp.Compiler-proto $@
+	$(MAKE) -C Fsc-proto $@
+	$(MAKE) -C FSharp.Core $@
+	$(MAKE) -C FSharp.Build $@
+	$(MAKE) -C FSharp.Compiler $@
+	$(MAKE) -C Fsc $@
 

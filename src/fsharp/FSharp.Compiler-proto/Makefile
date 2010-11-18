@@ -1,7 +1,9 @@
 NAME=FSharp.Compiler-proto
 ASSEMBLY = $(NAME).dll
 
-include ../Makefile.inc
+include ../config.make
+
+CONFIG=proto
 
 FSC=$(bindir)fsc.exe
 
@@ -16,7 +18,8 @@ DEFINES += \
 	--define:TRYING_TO_FIX_4577
 
 REFERENCES += \
-	-r:$(bindir)FSharp.Core.dll
+	-r:$(bindir)FSharp.Core.dll \
+	-r:Mono.Security.dll
 
 sources = \
 	$(objdir)FSComp.fs \
@@ -143,30 +146,26 @@ sources = \
 	../vs/IncrementalBuild.fs
 
 RESOURCES= \
-	--resource:$(objdir)FSStrings.resources \
-	--resource:$(objdir)FSComp.resources
+	$(objdir)FSStrings.resources \
+	$(objdir)FSComp.resources
 
-$(objdir)FSComp.fs: ../FSComp.txt
-	mono --debug $(FSSRGEN) ../FSComp.txt $@ $(objdir)FSComp.resx
-
-$(objdir)FSComp.resources: $(objdir)FSComp.fs
-	resgen $(objdir)FSComp.resx $@
+$(objdir)FSComp.resources: ../FSComp.txt
+	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
+	resgen $(@:.resources=.resx) $@
 
 $(objdir)FSStrings.resources: ../FSStrings.resx
-	resgen ../FSStrings.resx $@
+	resgen $< $@
 
 $(objdir)lex.fs: ../lex.fsl
-	mono --debug $(FSLEX) ../lex.fsl -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
+	mono --debug $(FSLEX) $< -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
 
 $(objdir)illex.fs: ../../absil/illex.fsl
-	mono --debug $(FSLEX) ../../absil/illex.fsl -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
+	mono --debug $(FSLEX) $< -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
 
 $(objdir)pars.fs: ../pars.fsy
-	mono --debug $(FSYACC) ../pars.fsy -o $@ --internal --open Microsoft.FSharp.Compiler --module Microsoft.FSharp.Compiler.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
+	mono --debug $(FSYACC) $< -o $@ --internal --open Microsoft.FSharp.Compiler --module Microsoft.FSharp.Compiler.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
 $(objdir)ilpars.fs: ../../absil/ilpars.fsy
-	mono --debug $(FSYACC) ../../absil/ilpars.fsy -o $@ --internal --module Microsoft.FSharp.Compiler.AbstractIL.Internal.AsciiParser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
+	mono --debug $(FSYACC) $< -o $@ --internal --module Microsoft.FSharp.Compiler.AbstractIL.Internal.AsciiParser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
-$(objdir)$(ASSEMBLY): $(objdir)FSStrings.resources $(objdir)FSComp.resources $(sources)
-	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
-
+include ../targets.make

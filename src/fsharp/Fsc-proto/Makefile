@@ -1,7 +1,9 @@
 NAME=fsc-proto
 ASSEMBLY = $(NAME).exe
 
-include ../Makefile.inc
+include ../config.make
+
+CONFIG=proto
 
 FSC=$(bindir)fsc.exe
 
@@ -26,14 +28,10 @@ sources = \
 	../fscmain.fs
 
 RESOURCES = \
-	--resource:$(objdir)FSCstrings.resources
+	$(objdir)FSCstrings.resources
 
-$(objdir)FSCstrings.fs: ../FSCstrings.txt
-	mono --debug $(FSSRGEN) ../FSCstrings.txt $@ $(patsubst %.fs,%.resx,$@)
+$(objdir)FSCstrings.resources: ../FSCstrings.txt
+	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
+	resgen $(@:.resources=.resx) $@
 
-$(objdir)FSCstrings.resources: $(objdir)FSCstrings.fs
-	resgen $(patsubst %.resources,%.resx,$@) $@
-
-$(objdir)$(ASSEMBLY): $(objdir)FSCstrings.resources $(sources)
-	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(RESOURCES) $(sources)
-
+include ../targets.make

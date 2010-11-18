@@ -1,13 +1,13 @@
 NAME=FSharp.Build
 ASSEMBLY = $(NAME).dll
 
-include ../Makefile.inc
+include ../config.make
 
-outdir=../../../lib/debug/
+FSC=$(protodir)fsc-proto.exe
 
-FSC=$(proto)fsc-proto.exe
-
-FLAGS += --target:library
+FLAGS += \
+	$(FINAL_FLAGS) \
+	--target:library
 
 REFERENCES += \
 	-r:$(outdir)FSharp.Core.dll
@@ -22,14 +22,10 @@ sources= \
 	CreateFSharpManifestResourceName.fs
 
 RESOURCES = \
-	--resource:$(objdir)FSBuild.resources
+	$(objdir)FSBuild.resources
 
-$(objdir)FSBuild.fs: FSBuild.txt
-	mono --debug $(FSSRGEN) FSBuild.txt $@ $(objdir)FSBuild.resx
+$(objdir)FSBuild.resources: FSBuild.txt
+	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
+	resgen $(@:.resources=.resx) $@
 
-$(objdir)FSBuild.resources: $(objdir)FSBuild.fs
-	resgen $(objdir)FSBuild.resx $@
-
-$(objdir)$(ASSEMBLY): $(objdir)FSBuild.resources $(sources)
-	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(RESOURCES) $(sources)
-
+include ../targets.make

@@ -1,19 +1,17 @@
 NAME=FSharp.Core
 ASSEMBLY = $(NAME).dll
 
-include ../Makefile.inc
+include ../config.make
 
-outdir=../../../lib/debug/
-
-FSC=$(proto)fsc-proto.exe
+FSC=$(protodir)fsc-proto.exe
 
 FLAGS += \
+	$(FINAL_FLAGS) \
 	--target:library \
 	--compiling-fslib
 
 DEFINES += \
-	--define:RUNTIME \
-	--define:USE_FX_40_LAZY_ON_FX_20
+	--define:RUNTIME
 
 sources = \
 	prim-types-prelude.fsi \
@@ -66,11 +64,9 @@ sources = \
 	../../assemblyinfo/assemblyinfo.FSharp.Core.dll.fs
 
 RESOURCES = \
-	--resource:$(objdir)FSCore.resources
+	$(objdir)FSCore.resources
 
 $(objdir)FSCore.resources: FSCore.resx
-	resgen FSCore.resx $@
+	resgen $< $@
 
-$(objdir)$(ASSEMBLY): $(objdir)FSCore.resources $(sources)
-	MONO_PATH=$(bindir) mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
-
+include ../targets.make

@@ -1,2 +1,5 @@
 src/fsharp/*/.libs
+lib/debug
+lib/proto
+
 

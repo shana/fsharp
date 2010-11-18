@@ -1,13 +1,13 @@
 NAME=fsc
 ASSEMBLY = $(NAME).exe
 
-include ../Makefile.inc
+include ../config.make
 
-outdir=../../../lib/debug/
+FSC=$(protodir)fsc-proto.exe
 
-FSC=$(proto)fsc-proto.exe
-
-FLAGS += --target:exe
+FLAGS += \
+	$(FINAL_FLAGS) \
+	--target:exe
 
 REFERENCES += \
 	-r:$(outdir)FSharp.Core.dll \
@@ -22,14 +22,10 @@ sources = \
 	../fscmain.fs
 
 RESOURCES = \
-	--resource:$(objdir)FSCstrings.resources
+	$(objdir)FSCstrings.resources
 
-$(objdir)FSCstrings.fs: ../FSCstrings.txt
-	mono --debug $(FSSRGEN) ../FSCstrings.txt $@ $(objdir)FSCstrings.resx
+$(objdir)FSCstrings.resources: ../FSCstrings.txt
+	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
+	resgen $(@:.resources=.resx) $@
 
-$(objdir)FSCstrings.resources: $(objdir)FSCstrings.fs
-	resgen $(objdir)FSCstrings.resx $@
-
-$(objdir)$(ASSEMBLY): $(objdir)FSCstrings.resources $(sources)
-	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(DEFINES) $(FLAGS) $(REFERENCES) $(RESOURCES) $(sources)
-
+include ../targets.make
