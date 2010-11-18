@@ -1,6 +1,8 @@
 NAME=FSharp.Compiler-proto
 ASSEMBLY = $(NAME).dll
 
+srcdir := @abs_srcdir@/
+
 include ../config.make
 
 CONFIG=proto
@@ -149,23 +151,23 @@ RESOURCES= \
 	$(objdir)FSStrings.resources \
 	$(objdir)FSComp.resources
 
-$(objdir)FSComp.resources: ../FSComp.txt
+$(objdir)FSComp.resources: $(srcdir)../FSComp.txt
 	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
 	resgen $(@:.resources=.resx) $@
 
-$(objdir)FSStrings.resources: ../FSStrings.resx
+$(objdir)FSStrings.resources: $(srcdir)../FSStrings.resx
 	resgen $< $@
 
-$(objdir)lex.fs: ../lex.fsl
+$(objdir)lex.fs: $(srcdir)../lex.fsl
 	mono --debug $(FSLEX) $< -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
 
-$(objdir)illex.fs: ../../absil/illex.fsl
+$(objdir)illex.fs: $(srcdir)../../absil/illex.fsl
 	mono --debug $(FSLEX) $< -o $@ --lexlib Internal.Utilities.Text.Lexing --unicode
 
-$(objdir)pars.fs: ../pars.fsy
+$(objdir)pars.fs: $(srcdir)../pars.fsy
 	mono --debug $(FSYACC) $< -o $@ --internal --open Microsoft.FSharp.Compiler --module Microsoft.FSharp.Compiler.Parser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
-$(objdir)ilpars.fs: ../../absil/ilpars.fsy
+$(objdir)ilpars.fs: $(srcdir)../../absil/ilpars.fsy
 	mono --debug $(FSYACC) $< -o $@ --internal --module Microsoft.FSharp.Compiler.AbstractIL.Internal.AsciiParser --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing
 
-include ../targets.make
+include $(topdir)/src/fsharp/targets.make

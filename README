@@ -8,3 +8,9 @@ To bootstrap the compiler, binaries built on VS2010 are used, as the official bi
 fail to build due to a possible tail call bug on Mono.
 
 This build is based on F# Powerpack r53135
+
+
+======= BUILDING =======
+
+To build, run autoreconf to generate a configure script, then run configure and make in
+the usual way.

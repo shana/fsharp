@@ -15,14 +15,16 @@ AC_PROG_MAKE_SET
 
 # Checks for library functions.
 
-AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 src/fsharp/FSharp.Build-proto/Makefile
-                 src/fsharp/FSharp.Build/Makefile
-                 src/fsharp/FSharp.Compiler-proto/Makefile
-                 src/fsharp/FSharp.Compiler/Makefile
-                 src/fsharp/FSharp.Core/Makefile
-                 src/fsharp/Fsc-proto/Makefile
-                 src/fsharp/Fsc/Makefile
-                 src/fsharp/Makefile])
+AC_CONFIG_FILES([
+launcher
+src/fsharp/Makefile
+src/fsharp/config.make
+src/fsharp/FSharp.Build-proto/Makefile
+src/fsharp/FSharp.Compiler-proto/Makefile
+src/fsharp/Fsc-proto/Makefile
+src/fsharp/FSharp.Core/Makefile
+src/fsharp/FSharp.Build/Makefile
+src/fsharp/FSharp.Compiler/Makefile
+src/fsharp/Fsc/Makefile
+])
 AC_OUTPUT

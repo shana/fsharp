@@ -1,6 +1,8 @@
 NAME=FSharp.Core
 ASSEMBLY = $(NAME).dll
 
+srcdir := @abs_srcdir@/
+
 include ../config.make
 
 FSC=$(protodir)fsc-proto.exe
@@ -66,7 +68,7 @@ sources = \
 RESOURCES = \
 	$(objdir)FSCore.resources
 
-$(objdir)FSCore.resources: FSCore.resx
+$(objdir)FSCore.resources: $(srcdir)FSCore.resx
 	resgen $< $@
 
-include ../targets.make
+include $(topdir)/src/fsharp/targets.make

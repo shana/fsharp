@@ -1,6 +1,8 @@
 NAME=FSharp.Build
 ASSEMBLY = $(NAME).dll
 
+srcdir := @abs_srcdir@/
+
 include ../config.make
 
 FSC=$(protodir)fsc-proto.exe
@@ -24,8 +26,9 @@ sources= \
 RESOURCES = \
 	$(objdir)FSBuild.resources
 
-$(objdir)FSBuild.resources: FSBuild.txt
+$(objdir)FSBuild.resources: $(srcdir)FSBuild.txt
 	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
 	resgen $(@:.resources=.resx) $@
 
-include ../targets.make
+include $(topdir)/src/fsharp/targets.make
+

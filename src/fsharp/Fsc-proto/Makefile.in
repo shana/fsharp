@@ -1,6 +1,8 @@
 NAME=fsc-proto
 ASSEMBLY = $(NAME).exe
 
+srcdir := @abs_srcdir@/
+
 include ../config.make
 
 CONFIG=proto
@@ -30,8 +32,8 @@ sources = \
 RESOURCES = \
 	$(objdir)FSCstrings.resources
 
-$(objdir)FSCstrings.resources: ../FSCstrings.txt
+$(objdir)FSCstrings.resources: $(srcdir)../FSCstrings.txt
 	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
 	resgen $(@:.resources=.resx) $@
 
-include ../targets.make
+include $(topdir)/src/fsharp/targets.make
