@@ -29,6 +29,9 @@ open System.Runtime.InteropServices
 #if FX_ATLEAST_40
 open System.Runtime.CompilerServices
 #endif
+#if MONO
+open Mono.Security
+#endif
 
 // Force inline, so GetLastWin32Error calls are immediately after interop calls as seen by FxCop under Debug build.
 let inline ignore _x = ()
@@ -1512,6 +1515,9 @@ let signerCloseKeyContainer kc =
 #endif
 
 let signerSignatureSize pk = 
+#if MONO
+  if (pk:byte[]).Length > 32 then pk.Length - 32 else 128
+#else
   let mutable pSize =  0u
 #if FX_ATLEAST_40
   let iclrSN = getICLRStrongName()
@@ -1521,8 +1527,21 @@ let signerSignatureSize pk =
   check "signerSignatureSize" (Marshal.GetLastWin32Error())
 #endif
   (int)pSize
+#endif
 
 let signerSignFileWithKeyPair fileName kp = 
+#if MONO
+  let mutable r = 0
+  let sn = new StrongName (kp:byte[])
+  let r = match sn.Sign (fileName) with
+          | true -> 0
+          | false -> -1
+  check "action" r
+  let r = match sn.Verify (fileName) with
+          | true -> 0
+          | false -> -1
+  check "signerSignFileWithKeyPair" r
+#else
   let mutable pcb = 0u
   let mutable ppb = (nativeint)0
   let mutable ok = false
@@ -1539,8 +1558,21 @@ let signerSignFileWithKeyPair fileName kp =
   StrongNameSignatureVerificationEx(fileName, true, &ok) |> ignore
   check "signerSignFileWithKeyPair" (Marshal.GetLastWin32Error())
 #endif
+#endif
 
 let signerSignFileWithKeyContainer fileName kcName =
+#if MONO
+  let mutable r = 0
+  let sn = new StrongName (System.Text.Encoding.ASCII.GetBytes (kcName:string))
+  let r = match sn.Sign (fileName) with
+          | true -> 0
+          | false -> -1
+  check "action" r
+  let r = match sn.Verify (fileName) with
+          | true -> 0
+          | false -> -1
+  check "signerSignFileWithKeyPair" r
+#else
   let mutable pcb = 0u
   let mutable ppb = (nativeint)0
   let mutable ok = false
@@ -1556,4 +1588,5 @@ let signerSignFileWithKeyContainer fileName kcName =
 #else
   StrongNameSignatureVerificationEx(fileName, true, &ok) |> ignore
   check "signerSignFileWithKeyPair" (Marshal.GetLastWin32Error())
+#endif
 #endif
