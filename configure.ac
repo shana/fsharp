@@ -17,6 +17,7 @@ AC_PROG_MAKE_SET
 
 AC_CONFIG_FILES([
 launcher
+Makefile
 src/fsharp/Makefile
 src/fsharp/config.make
 src/fsharp/FSharp.Build-proto/Makefile

@@ -1,19 +1,13 @@
-SUBDIRS= \
-	FSharp.Build-proto \
-	FSharp.Compiler-proto \
-	Fsc-proto \
-	FSharp.Core \
-	FSharp.Build \
-	FSharp.Compiler \
-	Fsc
+TARGETS = all clean
 
-RECURSIVE_TARGETS = all clean
-
-$(RECURSIVE_TARGETS):
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
-		echo "Making $$@ in $$subdir"; \
-		($(MAKE) -C $$subdir $(MAKEFLAGS) $$@) \
-	done;
+$(TARGETS):
+	$(MAKE) -C FSharp.Build-proto $@
+	$(MAKE) -C FSharp.Compiler-proto $@
+	$(MAKE) -C Fsc-proto $@
+	$(MAKE) -C FSharp.Core $@
+	$(MAKE) -C FSharp.Build $@
+	$(MAKE) -C FSharp.Compiler $@
+	$(MAKE) -C Fsc
 
 install:
 	$(MAKE) -C FSharp.Core install-lib-2

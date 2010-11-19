@@ -1,9 +1,5 @@
-SUBDIRS= src/fsharp
+TARGETS := all clean install
 
-RECURSIVE_TARGETS = all clean install
+$(TARGETS):
+	$(MAKE) -C src/fsharp $@
 
-$(RECURSIVE_TARGETS):
-	@list='$(SUBDIRS)'; for subdir in $$list; do \
-		echo "Making $$@ in $$subdir"; \
-		($(MAKE) -C $$subdir $(MAKEFLAGS) $$@) \
-	done;
