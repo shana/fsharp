@@ -1,4 +1,4 @@
-TARGETS = all clean
+TARGETS = all clean install do-2-0 do-4-0 clean-2-0 clean-4-0
 
 $(TARGETS):
 	$(MAKE) -C FSharp.Build-proto $@
@@ -7,9 +7,5 @@ $(TARGETS):
 	$(MAKE) -C FSharp.Core $@
 	$(MAKE) -C FSharp.Build $@
 	$(MAKE) -C FSharp.Compiler $@
-	$(MAKE) -C Fsc
+	$(MAKE) -C Fsc $@
 
-install:
-	$(MAKE) -C FSharp.Core install-lib-2
-	$(MAKE) -C FSharp.Compiler install-lib-2
-	$(MAKE) -C Fsc install-bin-2

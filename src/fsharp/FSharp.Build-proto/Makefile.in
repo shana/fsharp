@@ -3,7 +3,7 @@ ASSEMBLY = $(NAME).dll
 
 srcdir := @abs_srcdir@/
 
-include ../config.make
+include @abs_top_builddir@/config.make
 
 CONFIG=proto
 
@@ -26,11 +26,11 @@ sources= \
 	../FSharp.Build/Fsc.fs
 
 RESOURCES = \
-	$(objdir)FSBuild.resources
+	$(tmpdir)FSBuild.resources
 
-include $(topdir)/src/fsharp/targets.make
-
-$(objdir)FSBuild.resources: $(srcdir)../FSharp.Build/FSBuild.txt
+$(tmpdir)FSBuild.resources: $(srcdir)../FSharp.Build/FSBuild.txt
 	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
 	resgen $(@:.resources=.resx) $@
+
+include $(topdir)/src/fsharp/targets.make
 

@@ -3,7 +3,7 @@ ASSEMBLY = $(NAME).exe
 
 srcdir := @abs_srcdir@/
 
-include ../config.make
+include @abs_top_builddir@/config.make
 
 CONFIG=proto
 
@@ -23,16 +23,16 @@ REFERENCES += \
 	-r:$(libdir)System.Windows.Forms.dll
 
 sources = \
-	$(objdir)FSCstrings.fs \
+	$(tmpdir)FSCstrings.fs \
 	../../utils/filename.fsi \
 	../../utils/filename.fs \
 	../fsc.fs \
 	../fscmain.fs
 
 RESOURCES = \
-	$(objdir)FSCstrings.resources
+	$(tmpdir)FSCstrings.resources
 
-$(objdir)FSCstrings.resources: $(srcdir)../FSCstrings.txt
+$(tmpdir)FSCstrings.resources: $(srcdir)../FSCstrings.txt
 	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
 	resgen $(@:.resources=.resx) $@
 

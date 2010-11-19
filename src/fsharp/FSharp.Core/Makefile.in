@@ -3,14 +3,19 @@ ASSEMBLY = $(NAME).dll
 
 srcdir := @abs_srcdir@/
 
-include ../config.make
+include @abs_top_builddir@/config.make
 
 FSC=$(protodir)fsc-proto.exe
 
-FLAGS += \
+FLAGS_2_0 += \
 	$(FINAL_FLAGS) \
 	--target:library \
 	--compiling-fslib
+
+FLAGS_4_0 += \
+	$(FINAL_FLAGS) \
+	$(FLAGS_2_0) \
+	--compiling-fslib-mscorlib40:$(libdir)mscorlib.dll
 
 DEFINES += \
 	--define:RUNTIME
@@ -66,9 +71,9 @@ sources = \
 	../../assemblyinfo/assemblyinfo.FSharp.Core.dll.fs
 
 RESOURCES = \
-	$(objdir)FSCore.resources
+	$(tmpdir)FSCore.resources
 
-$(objdir)FSCore.resources: $(srcdir)FSCore.resx
+$(tmpdir)FSCore.resources: $(srcdir)FSCore.resx
 	resgen $< $@
 
 include $(topdir)/src/fsharp/targets.make

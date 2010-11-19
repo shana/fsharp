@@ -1,31 +1,28 @@
-SOURCES := $(subst $(srcdir)$(objdir),$(objdir),$(patsubst %,$(srcdir)%,$(sources)))
+SOURCES := $(patsubst $(srcdir)$(tmpdir)%,$(tmpdir)%,$(patsubst %,$(srcdir)%,$(sources)))
 
-all: net_2_0
+all: do-4-0 do-2-0
 
-net_2_0: DEFINES += $(DEFINES_2_0)
-net_2_0: REFERENCES += $(REFERENCES_2_0)
-net_2_0: FLAGS += $(FLAGS_2_0)
-net_2_0: TARGET := 2.0
-net_2_0: VERSION := 2.0.0.0
-net_2_0: bindir := $(bindir2)
-net_2_0: libdir := $(libdir2)
-net_2_0: setup $(objdir)$(ASSEMBLY) copy
+install: all install-lib install-bin
 
-
-net_4_0: DEFINES += $(DEFINES_4_0)
-net_4_0: REFERENCES += $(REFERENCES_4_0)
-net_4_0: FLAGS += $(FLAGS_4_0)
-net_4_0: TARGET := 4.0
-net_4_0: VERSION := 4.0.0.0
-net_4_0: bindir += $(bindir4)
-net_4_0: libdir += $(libdir4)
-net_4_0: setup $(objdir)$(ASSEMBLY) copy
+clean: clean-4-0 clean-2-0
 
 setup:
 	@-mkdir -p $(objdir)
 	@-mkdir -p $(outdir)
 
-clean:
+clean-2-0: TARGET := $(TARGET_2_0)
+clean-2-0:
+	-rm $(tmpdir)*
+	-rm $(objdir)*
+	@-rm $(outdir)$(ASSEMBLY)
+	@-rm $(outdir)$(ASSEMBLY).mdb
+	@-rm $(outdir)$(NAME).xml
+	@-rm $(outdir)$(NAME).sigdata
+	@-rm $(outdir)$(NAME).optdata
+
+clean-4-0: TARGET := $(TARGET_4_0)
+clean-4-0:
+	@-rm $(tmpdir)*
 	@-rm $(objdir)*
 	@-rm $(outdir)$(ASSEMBLY)
 	@-rm $(outdir)$(ASSEMBLY).mdb
@@ -40,23 +37,54 @@ copy:
 	@-cp $(objdir)$(NAME).sigdata $(outdir)
 	@-cp $(objdir)$(NAME).optdata $(outdir)
 
-install-lib-2: TARGET := 2.0
-install-lib-2:
+do-2-0: DEFINES += $(DEFINES_2_0)
+do-2-0: REFERENCES += $(REFERENCES_2_0)
+do-2-0: FLAGS += $(FLAGS_2_0)
+do-2-0: TARGET := $(TARGET_2_0)
+do-2-0: VERSION := $(VERSION_2_0)
+do-2-0: libdir = $(libdir2)
+do-2-0: setup $(ASSEMBLY) copy
+
+do-4-0: DEFINES += $(DEFINES_4_0)
+do-4-0: REFERENCES += $(REFERENCES_4_0)
+do-4-0: FLAGS += $(FLAGS_4_0)
+do-4-0: TARGET := $(TARGET_4_0)
+do-4-0: VERSION := $(VERSION_4_0)
+do-4-0: libdir = $(libdir4)
+do-4-0: setup $(ASSEMBLY) copy
+
+install-lib-2: TARGET := $(TARGET_2_0)
+install-lib-2: libdir = $(libdir2)
+install-lib-2 install-lib-4: install-lib
+
+install-lib-4: TARGET := $(TARGET_4_0)
+install-lib-4: libdir = $(libdir4)
+
+install-lib:
 	sn -R $(outdir)$(ASSEMBLY) $(srcdir)../../../mono.snk
 	gacutil -i $(outdir)$(ASSEMBLY)
-	ln -s -f $(monodir)gac/$(NAME)/2.0.0.0__b03f5f7f11d50a3a/$(ASSEMBLY) $(libdir2)
+	ln -s -f $(monodir)gac/$(NAME)/$(TARGET).0.0__b03f5f7f11d50a3a/$(ASSEMBLY) $(libdir)
 
 do_subst = sed -e 's,[@]DIR[@],$(libdir2),g' -e 's,[@]TOOL[@],fsc.exe,g'
 
-install-bin-2: TARGET := 2.0
-install-bin-2: libdir := $(libdir2)
-install-bin-2: install-bin
+install-bin-2: TARGET := $(TARGET_2_0)
+install-bin-2: VERSION := 2
+install-bin-2: libdir = $(libdir2)
+
+install-bin-4: TARGET := $(TARGET_4_0)
+install-bin-4: VERSION := 4
+install-bin-4: libdir = $(libdir4)
+
+install-bin-2 install-bin-4: install-bin
+
 install-bin:
-	$(do_subst) < $(topdir)launcher.in > $(outdir)$(NAME)
+	$(do_subst) < $(topdir)launcher.in > $(outdir)$(NAME)$(VERSION)
 	chmod +x $(outdir)$(NAME)
 	$(INSTALL_LIB) $(outdir)$(ASSEMBLY) $(libdir)
-	$(INSTALL_BIN) $(outdir)$(NAME) $(installdir)
+	$(INSTALL_BIN) $(outdir)$(NAME)$(VERSION) $(installdir)
 
-$(objdir)$(ASSEMBLY): $(RESOURCES) $(SOURCES)
-	mono $(MONO_OPTIONS) --debug $(FSC) -o:$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %.resources,--resource:%.resources,$(RESOURCES)) $(SOURCES)
+
+.PHONY: $(ASSEMBLY)
+$(ASSEMBLY): $(RESOURCES) $(SOURCES)
+	MONO_PATH=$(bindir) mono $(MONO_OPTIONS) --debug $(FSC) -o:$(objdir)$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %,--resource:%,$(RESOURCES)) $(SOURCES)
 

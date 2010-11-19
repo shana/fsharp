@@ -1,24 +1,32 @@
+bootstrap := @with_bootstrap@
 prefix := @prefix@
 topdir := @abs_top_srcdir@/
+builddir := @abs_top_builddir@/
 libdir := ${prefix}/lib/
 installdir := ${prefix}/bin/
 monodir := $(libdir)mono/
-bindir2 := $(topdir)lib/original/2.0/
-bindir4 := $(topdir)lib/original/4.0/
 libdir2 := $(monodir)2.0/
 libdir35 := $(monodir)3.5/
 libdir4 := $(monodir)4.0/
 tooldir := $(topdir)lib/original/2.0/
-objdir := .libs/
 
-protodir = @top_builddir@/lib/proto/$(TARGET)/
-outdir = @top_builddir@/lib/$(CONFIG)/$(TARGET)/
+bindir = $(bootstrap)/$(TARGET)/
+tmpdir = .libs/
+objdir = $(tmpdir)$(TARGET)/
+protodir = $(builddir)/lib/proto/$(TARGET)/
+outdir = $(builddir)lib/$(CONFIG)/$(TARGET)/
 
 FSSRGEN := $(tooldir)fssrgen.exe
 FSLEX := $(tooldir)fslex.exe
 FSYACC := $(tooldir)fsyacc.exe
 
-CONFIG=debug
+CONFIG := debug
+DISTVERSION := 201011
+
+VERSION_2_0 := 2.0.0.0
+VERSION_4_0 := 4.0.0.0
+TARGET_2_0 := 2.0
+TARGET_4_0 := 4.0
 
 FLAGS = \
 	--doc:$(objdir)$(NAME).xml \
@@ -65,10 +73,23 @@ REFERENCES_2_0 = \
 	-r:$(libdir)System.Core.dll \
 	-r:$(libdir)System.dll
 
+REFERENCES_4_0 = \
+	-r:$(libdir)Microsoft.Build.Engine.dll \
+	-r:$(libdir)Microsoft.Build.Framework.dll \
+	-r:$(libdir35)Microsoft.Build.Tasks.v3.5.dll \
+	-r:$(libdir35)Microsoft.Build.Utilities.v3.5.dll \
+	-r:$(libdir)mscorlib.dll \
+	-r:$(libdir)System.Core.dll \
+	-r:$(libdir)System.dll \
+	-r:$(libdir)System.Numerics.dll
+
 INSTALL = $(SHELL) $(topdir)install-sh
 INSTALL_DATA = $(INSTALL) -c -m 644
 INSTALL_BIN = $(INSTALL) -c -m 755
 INSTALL_LIB = $(INSTALL_BIN)
+
+EXTRA_DIST = configure
+NO_DIST = .gitignore lib
 
 DEFAULT: all
 

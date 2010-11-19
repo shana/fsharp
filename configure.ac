@@ -15,11 +15,17 @@ AC_PROG_MAKE_SET
 
 # Checks for library functions.
 
+AC_ARG_WITH([bootstrap], 
+        [  --with-bootstrap=<path>], 
+        [], [with_bootstrap=lib/original])
+with_bootstrap=$(cd "$with_bootstrap" && pwd)
+AC_SUBST(with_bootstrap)
+
 AC_CONFIG_FILES([
 launcher
 Makefile
+config.make
 src/fsharp/Makefile
-src/fsharp/config.make
 src/fsharp/FSharp.Build-proto/Makefile
 src/fsharp/FSharp.Compiler-proto/Makefile
 src/fsharp/Fsc-proto/Makefile

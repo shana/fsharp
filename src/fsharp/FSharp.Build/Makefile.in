@@ -3,7 +3,7 @@ ASSEMBLY = $(NAME).dll
 
 srcdir := @abs_srcdir@/
 
-include ../config.make
+include @abs_top_builddir@/config.make
 
 FSC=$(protodir)fsc-proto.exe
 
@@ -15,7 +15,7 @@ REFERENCES += \
 	-r:$(outdir)FSharp.Core.dll
 
 sources= \
-	$(objdir)FSBuild.fs \
+	$(tmpdir)FSBuild.fs \
 	../../assemblyinfo/assemblyinfo.FSharp.Build.dll.fs \
 	../../utils/CompilerLocationUtils.fs \
 	Fsc.fsi \
@@ -24,9 +24,9 @@ sources= \
 	CreateFSharpManifestResourceName.fs
 
 RESOURCES = \
-	$(objdir)FSBuild.resources
+	$(tmpdir)FSBuild.resources
 
-$(objdir)FSBuild.resources: $(srcdir)FSBuild.txt
+$(tmpdir)FSBuild.resources: $(srcdir)FSBuild.txt
 	mono --debug $(FSSRGEN) $< $(@:.resources=.fs) $(@:.resources=.resx)
 	resgen $(@:.resources=.resx) $@
 
