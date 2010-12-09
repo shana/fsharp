@@ -2,7 +2,7 @@ SOURCES := $(patsubst $(srcdir)$(tmpdir)%,$(tmpdir)%,$(patsubst %,$(srcdir)%,$(s
 
 all: do-4-0 do-2-0
 
-install: all install-lib install-bin
+install: install-lib-2 install-lib-4 install-bin-2 install-bin-4
 
 clean: clean-4-0 clean-2-0
 
@@ -43,7 +43,7 @@ do-2-0: FLAGS += $(FLAGS_2_0)
 do-2-0: TARGET := $(TARGET_2_0)
 do-2-0: VERSION := $(VERSION_2_0)
 do-2-0: libdir = $(libdir2)
-do-2-0: setup $(ASSEMBLY) copy
+do-2-0: $(objdir)$(TARGET_2_0)$(ASSEMBLY) copy
 
 do-4-0: DEFINES += $(DEFINES_4_0)
 do-4-0: REFERENCES += $(REFERENCES_4_0)
@@ -51,14 +51,14 @@ do-4-0: FLAGS += $(FLAGS_4_0)
 do-4-0: TARGET := $(TARGET_4_0)
 do-4-0: VERSION := $(VERSION_4_0)
 do-4-0: libdir = $(libdir4)
-do-4-0: setup $(ASSEMBLY) copy
+do-4-0: $(objdir)$(TARGET_4_0)$(ASSEMBLY) copy
 
 install-lib-2: TARGET := $(TARGET_2_0)
 install-lib-2: libdir = $(libdir2)
-install-lib-2 install-lib-4: install-lib
-
 install-lib-4: TARGET := $(TARGET_4_0)
 install-lib-4: libdir = $(libdir4)
+
+install-lib-2 install-lib-4: install-lib
 
 install-lib:
 	sn -R $(outdir)$(ASSEMBLY) $(srcdir)../../../mono.snk
@@ -84,7 +84,8 @@ install-bin:
 	$(INSTALL_BIN) $(outdir)$(NAME)$(VERSION) $(installdir)
 
 
-.PHONY: $(ASSEMBLY)
-$(ASSEMBLY): $(RESOURCES) $(SOURCES)
-	MONO_PATH=$(bindir) mono $(MONO_OPTIONS) --debug $(FSC) -o:$(objdir)$@ $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %,--resource:%,$(RESOURCES)) $(SOURCES)
+$(objdir)$(TARGET_2_0)$(ASSEMBLY): $(RESOURCES) $(SOURCES)
+	MONO_PATH=$(bindir) mono $(MONO_OPTIONS) --debug $(FSC) -o:$(objdir)$(ASSEMBLY) $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %,--resource:%,$(RESOURCES)) $(SOURCES)
 
+$(objdir)$(TARGET_4_0)$(ASSEMBLY):  $(RESOURCES) $(SOURCES)
+	MONO_PATH=$(bindir) mono $(MONO_OPTIONS) --debug $(FSC) -o:$(objdir)$(ASSEMBLY) $(REFERENCES) $(DEFINES) $(FLAGS) $(patsubst %,--resource:%,$(RESOURCES)) $(SOURCES)
