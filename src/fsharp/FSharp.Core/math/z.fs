@@ -378,14 +378,14 @@ namespace Microsoft.FSharp.Core
                     res 
                 else 
                     let v = 
-//#if FX_ATLEAST_40
-//                       if  isOX s then 
-//                          BigInteger.Parse (s.[2..],NumberStyles.AllowHexSpecifier,CultureInfo.InvariantCulture)
-//                       else
-//                          BigInteger.Parse (s,NumberStyles.AllowLeadingSign,CultureInfo.InvariantCulture)
-//#else
+#if FX_ATLEAST_40
+                       if  isOX s then 
+                          BigInteger.Parse (s.[2..],NumberStyles.AllowHexSpecifier,CultureInfo.InvariantCulture)
+                       else
+                          BigInteger.Parse (s,NumberStyles.AllowLeadingSign,CultureInfo.InvariantCulture)
+#else
                        BigInteger.Parse s
-//#endif
+#endif
                     res <-  v
                     tabParse.[s] <- res
                     res)

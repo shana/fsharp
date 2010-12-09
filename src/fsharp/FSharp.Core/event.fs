@@ -73,17 +73,22 @@ namespace Microsoft.FSharp.Control
                     d.DynamicInvoke(Array.append [| sender |] (Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields(box args))) |> ignore
         
         member x.Publish = 
-            { new IEvent<'Delegate,'Args> with 
+            // Note, we implement each interface explicitly to workaround a WP7 bug
+            { new obj() with
+                  member x.ToString() = "<published event>"
+              interface IEvent<'Delegate,'Args> 
+              interface IDelegateEvent<'Delegate> with 
                 member e.AddHandler(d) =
                     multicast <- System.Delegate.Combine(multicast, d)
                 member e.RemoveHandler(d) = 
                     multicast <- System.Delegate.Remove(multicast, d) 
+              interface System.IObservable<'Args> with 
                 member e.Subscribe(observer) = 
                    let obj = new EventDelegee<'Args>(observer)
                    let h = System.Delegate.CreateDelegate(typeof<'Delegate>, obj, invokeInfo) :?> 'Delegate
-                   e.AddHandler(h)
+                   (e :?> IDelegateEvent<'Delegate>).AddHandler(h)
                    { new System.IDisposable with 
-                        member x.Dispose() = e.RemoveHandler(h) } }
+                        member x.Dispose() = (e :?> IDelegateEvent<'Delegate>).RemoveHandler(h) } } 
 
 #endif
 
@@ -98,11 +103,16 @@ namespace Microsoft.FSharp.Control
             | None -> ()
             | Some d -> d.Invoke(null,arg) |> ignore
         member x.Publish = 
-            { new IEvent<'T> with 
+            // Note, we implement each interface explicitly to workaround a WP7 bug
+            { new obj() with
+                  member x.ToString() = "<published event>"
+              interface IEvent<'T> 
+              interface IDelegateEvent<Handler<'T>> with 
                 member e.AddHandler(d) =
                     x.Delegate <- (System.Delegate.Combine(x.Delegate, d) :?> Handler<'T>)
                 member e.RemoveHandler(d) = 
                     x.Delegate <- (System.Delegate.Remove(x.Delegate, d) :?> Handler<'T>)
+              interface System.IObservable<'T> with 
                 member e.Subscribe(observer) = 
                    let h = new Handler<_>(fun sender args -> observer.OnNext(args))
                    (e :?> IEvent<_,_>).AddHandler(h)

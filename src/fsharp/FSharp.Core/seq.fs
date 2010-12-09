@@ -721,9 +721,13 @@ namespace Microsoft.FSharp.Core.CompilerServices
             (FinallyEnumerable(compensation, (fun () -> rest)) :> seq<_>)
 
         let CreateEvent (add : 'Delegate -> unit) (remove : 'Delegate -> unit) (create : (obj -> 'Args -> unit) -> 'Delegate ) :IEvent<'Delegate,'Args> = 
-            { new IEvent<'Delegate,'Args> with 
+            { new obj() with
+                  member x.ToString() = "<published event>"
+              interface IEvent<'Delegate,'Args> 
+              interface IDelegateEvent<'Delegate> with 
                  member x.AddHandler(h) = add h 
                  member x.RemoveHandler(h) = remove h 
+              interface System.IObservable<'Args> with 
                  member x.Subscribe(r:IObserver<'Args>) = 
                      let h = create (fun _ args -> r.OnNext(args))
                      add h 

@@ -4156,10 +4156,12 @@ and GenDecisionTreeSuccess cenv cgbuf inplab stackAtTargets eenv es targetIdx ta
         else 
             CG.SetMarkToHere cgbuf inplab;
             repeatSP();
-            // It would be better not to emit any expressions here, and instead push these assignments into the postponed target
-            // However not all targets are currently postponed (we only postpone in debug code), pending further testing of the performance
-            // impact of postponing.
-            FlatList.iter2 (GenSetBindValue cenv cgbuf eenvAtTarget eenv ) vs es;
+            // Generate all the expressions before assigning into the variables
+            // The expressions are in terms of the "eenv" environment, not the "eenvAtTarget" environment
+            // and correct code generation depends on this.
+            (vs,es) ||> FlatList.iter2 (GenBindRhs cenv cgbuf eenv SPSuppress) 
+            vs |> List.rev |> FlatList.iter (fun v -> GenStoreVal cgbuf eenvAtTarget v.Range v) 
+
             CG.EmitInstr cgbuf [] (I_br targetMarkAfterBinds.CodeLabel); 
 
         targetInfos

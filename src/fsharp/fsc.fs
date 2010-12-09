@@ -23,6 +23,7 @@
 module internal Microsoft.FSharp.Compiler.Driver 
 
 open System.IO
+open System.Reflection
 open System.Collections.Generic
 open System.Runtime.CompilerServices
 open System.Text
@@ -1668,12 +1669,23 @@ module FSharpResidentCompiler =
     /// The compilation server, which runs in the server process. Accessed by clients using .NET remoting.
     type FSharpCompilationServer()  =
         inherit MarshalByRefObject()  
-        static let channelName = if runningOnMono then "FSCChannelMono" else "FSCChannel"
+
+        static let onWindows = 
+            match System.Environment.OSVersion.Platform with 
+            | PlatformID.Win32NT | PlatformID.Win32S | PlatformID.Win32Windows | PlatformID.WinCE -> true
+            | _  -> false
+
+        // The channel/socket name is qualified by the user name (and domain on windows)
+        static let domainName = if onWindows then Environment.GetEnvironmentVariable "USERDOMAIN" else ""
+        static let userName = Environment.GetEnvironmentVariable (if onWindows then "USERNAME" else "USER") 
+        // Use different base channel names on mono and CLR as a CLR remoting process can't talk
+        // to a mono server
+        static let baseChannelName = if runningOnMono then "FSCChannelMono" else "FSCChannel"
+        static let channelName = baseChannelName + "_" +  domainName + "_" + userName
         static let serverName = if runningOnMono then "FSCServerMono" else "FSCSever"
         static let mutable serverExists = true
         
         let outputCollector = new OutputCollector()
-
         // This lock ensures all compilation requests sent to the server are serialized.
         // Due to a Mono 2.8 bug, we can't use an agent to serialize requests at this 
         // point. We must run the compilation on the request thread. 
@@ -1736,6 +1748,30 @@ module FSharpResidentCompiler =
             let chan = new Ipc.IpcChannel(channelName) 
             ChannelServices.RegisterChannel(chan,false);
             RemotingServices.Marshal(server,serverName)  |> ignore
+
+            // On Unix, the file permissions of the implicit socket need to be set correctly to make this
+            // private to the user.
+            if runningOnMono then 
+              try 
+                  let monoPosix = System.Reflection.Assembly.Load("Mono.Posix, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756")
+                  let monoUnixFileInfo = monoPosix.GetType("Mono.Unix.UnixFileSystemInfo") 
+                  let socketName = Path.Combine(Path.GetTempPath(), channelName)
+                  let fileEntry = monoUnixFileInfo.InvokeMember("GetFileSystemEntry", (BindingFlags.InvokeMethod ||| BindingFlags.Static ||| BindingFlags.Public), null, null, [| box socketName |],System.Globalization.CultureInfo.InvariantCulture)
+                  // Add 0x00000180 (UserReadWriteExecute) to the access permissions on Unix
+                  monoUnixFileInfo.InvokeMember("set_FileAccessPermissions", (BindingFlags.InvokeMethod ||| BindingFlags.Instance ||| BindingFlags.Public), null, fileEntry, [| box 0x00000180 |],System.Globalization.CultureInfo.InvariantCulture) |> ignore
+#if DEBUG
+                  printfn "server: good, set permissions on socket name '%s'"  socketName
+                  let fileEntry = monoUnixFileInfo.InvokeMember("GetFileSystemEntry", (BindingFlags.InvokeMethod ||| BindingFlags.Static ||| BindingFlags.Public), null, null, [| box socketName |],System.Globalization.CultureInfo.InvariantCulture)
+                  let currPermissions = monoUnixFileInfo.InvokeMember("get_FileAccessPermissions", (BindingFlags.InvokeMethod ||| BindingFlags.Instance ||| BindingFlags.Public), null, fileEntry, [| |],System.Globalization.CultureInfo.InvariantCulture) |> unbox<int>
+                  if !progress then printfn "server: currPermissions = '%o' (octal)"  currPermissions
+#endif
+              with e -> 
+#if DEBUG
+                  printfn "server: failed to set permissions on socket, perhaps on windows? Is is not needed there."  
+#endif
+                  ()
+                  // Fail silently
+            // chmod
             server.Run()
             
         static member private ConnectToServer() =
@@ -1760,10 +1796,10 @@ module FSharpResidentCompiler =
                             let shellName, useShellExecute = 
                                 match System.Environment.GetEnvironmentVariable("FSC_MONO") with 
                                 | null -> 
-                                    match System.Environment.OSVersion.Platform with 
-                                    | PlatformID.Win32NT | PlatformID.Win32S | PlatformID.Win32Windows | PlatformID.WinCE -> 
-                                         Path.Combine(Path.GetDirectoryName (typeof<Object>.Assembly.Location), @"..\..\..\bin\mono.exe"), false
-                                    | _  -> "mono", true
+                                    if onWindows then 
+                                        Path.Combine(Path.GetDirectoryName (typeof<Object>.Assembly.Location), @"..\..\..\bin\mono.exe"), false
+                                    else
+                                        "mono", true
                                 | path -> path, false
                                      
                             // e.g. "C:\Program Files\Mono-2.6.1\lib\mono\2.0\mscorlib.dll" --> "C:\Program Files\Mono-2.6.1\bin\mono.exe"

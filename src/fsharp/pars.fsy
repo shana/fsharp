@@ -331,7 +331,6 @@ let grabXmlDoc(parseState:IParseState,elemIdx) =
  * prec_tuptyptail_prefix lower than "T * T * T * T" extensions.
  * Lower than possible extensions:
  *  - STAR, IDENT, RARROW
-
  *  - LBRACK = [ - for "base[]" types              
  * Shifts not reduces.
  */

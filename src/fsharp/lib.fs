@@ -20,14 +20,15 @@ open Microsoft.FSharp.Compiler.AbstractIL
 open Microsoft.FSharp.Compiler.AbstractIL.Internal 
 open Microsoft.FSharp.Compiler.AbstractIL.Internal.Library
 
-let condition s = 
-    try (System.Environment.GetEnvironmentVariable(s) <> null) with _ -> false
 
 /// is this the developer-debug build? 
-let debug = condition "debug" 
-let verbose = condition "verbose"
-let progress = ref false
+let debug = false 
+let verbose = false
+let progress = ref false 
 let tracking = ref false // intended to be a general hook to control diagnostic output when tracking down bugs
+
+let condition s = 
+    try (System.Environment.GetEnvironmentVariable(s) <> null) with _ -> false
 
 //-------------------------------------------------------------------------
 // Library: bits
