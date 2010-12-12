@@ -8,7 +8,7 @@ monodir := $(libdir)mono/
 libdir2 := $(monodir)2.0/
 libdir35 := $(monodir)3.5/
 libdir4 := $(monodir)4.0/
-tooldir := $(topdir)lib/original/2.0/
+tooldir := $(topdir)lib/bootstrap/2.0/
 
 bindir = $(bootstrap)/$(TARGET)/
 tmpdir = .libs/
@@ -35,7 +35,8 @@ FLAGS = \
 	--mlcompatibility \
 	--noframework \
 	--fullpaths \
-	--times
+	--times \
+	--nowarn:9
 
 FINAL_FLAGS = \
 	--delaysign+ \

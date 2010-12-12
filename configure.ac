@@ -17,7 +17,7 @@ AC_PROG_MAKE_SET
 
 AC_ARG_WITH([bootstrap], 
         [  --with-bootstrap=<path>], 
-        [], [with_bootstrap=lib/original])
+        [], [with_bootstrap=lib/bootstrap])
 with_bootstrap=$(cd "$with_bootstrap" && pwd)
 AC_SUBST(with_bootstrap)
 

@@ -1,5 +1,11 @@
-src/fsharp/*/.libs
 lib/debug
 lib/proto
-
+.libs
+Makefile
+configure
+launcher
+autom4te.cache
+config.log
+config.make
+config.status
 

@@ -1,5 +1,6 @@
 NAME=FSharp.Core
 ASSEMBLY = $(NAME).dll
+SIGN=1
 
 srcdir := @abs_srcdir@/
 
@@ -77,3 +78,6 @@ $(tmpdir)FSCore.resources: $(srcdir)FSCore.resx
 	resgen $< $@
 
 include $(topdir)/src/fsharp/targets.make
+
+install: install-lib-2 install-lib-4
+

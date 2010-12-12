@@ -1,5 +1,6 @@
 NAME=fsc
 ASSEMBLY = $(NAME).exe
+SIGN=1
 
 srcdir := @abs_srcdir@/
 
@@ -32,3 +33,4 @@ $(tmpdir)FSCstrings.resources: $(srcdir)../FSCstrings.txt
 
 include $(topdir)/src/fsharp/targets.make
 
+install: install-bin-2 install-bin-4

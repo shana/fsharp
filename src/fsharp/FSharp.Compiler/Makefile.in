@@ -1,5 +1,6 @@
 NAME=FSharp.Compiler
 ASSEMBLY = $(NAME).dll
+SIGN=1
 
 srcdir := @abs_srcdir@/
 
@@ -178,4 +179,4 @@ $(tmpdir)ilpars.fs: $(srcdir)../../absil/ilpars.fsy
 
 include $(topdir)/src/fsharp/targets.make
 
-
+install: install-lib-2 install-lib-4
